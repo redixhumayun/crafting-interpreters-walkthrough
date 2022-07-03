@@ -8,3 +8,13 @@ if (2 == 2) {
 } else {
     print "False"
 }
+
+var mul = a * b
+
+/*
+This is a multi line comment
+/* This is a nested comment */
+This is another comment
+*/
+
+var id = "a"

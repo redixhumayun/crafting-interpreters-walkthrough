@@ -87,7 +87,14 @@ public class Scanner {
             case '-': addToken(MINUS); break;
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
-            case '*': addToken(STAR); break;
+            case '*':
+                if (match('/')) {
+                    //  end of multi line comment
+                    while (peek() != '\n' && !isAtEnd()) advance();
+                } else {
+                    addToken(STAR);
+                }
+                break;
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -103,9 +110,12 @@ public class Scanner {
             case '/':
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    multiLineComments();
                 } else {
                     addToken(SLASH);
                 }
+                break;
             case ' ':
             case '\r':
             case '\t':
@@ -125,6 +135,22 @@ public class Scanner {
                     Lox.error(line, "Unexpected character");
                 }
                 break;
+        }
+    }
+
+    private void multiLineComments() {
+        while (!isAtEnd()) {
+            if (peek() == '/' && peekNext() == '*') {
+                advance();
+                multiLineComments();
+            }
+            if (peek() == '*' && peekNext() == '/') {
+                advance();
+                advance();
+                return;
+            }
+            if (peek() == '\n') line++;
+            advance();
         }
     }
 
