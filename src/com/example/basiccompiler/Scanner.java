@@ -125,6 +125,8 @@ public class Scanner {
                 line++;
                 break;
             case '"': string(); break;
+            case '?': addToken(CONDITIONAL); break;
+            case ':': addToken(COLON); break;
             default:
                 if (isDigit(c)) {
                     number();
@@ -132,6 +134,7 @@ public class Scanner {
                     identifier();
                 }
                 else {
+                    System.out.println(c);
                     Lox.error(line, "Unexpected character");
                 }
                 break;

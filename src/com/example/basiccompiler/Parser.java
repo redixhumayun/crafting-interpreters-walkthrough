@@ -22,7 +22,37 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return comma();
+    }
+
+    private Expr comma() {
+        Expr conditional = conditional();
+        while (match(COMMA)) {
+            Token operator = previous();
+            Expr right = conditional();
+            return right;
+        }
+        return conditional;
+    }
+
+    private Expr conditional() {
+        Expr colonConditional = colonConditional();
+        while (match(CONDITIONAL)) {
+            Token operator = previous();
+            Expr right = colonConditional();
+            return new Expr.Binary(colonConditional, operator, right);
+        }
+        return colonConditional;
+    }
+
+    private Expr colonConditional() {
+        Expr equality = equality();
+        while(match(COLON)) {
+            Token operator = previous();
+            Expr right = equality();
+            return new Expr.Binary(equality, operator, right);
+        }
+        return equality;
     }
 
     private Expr equality() {
