@@ -235,4 +235,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        return null;
+    }
+
 }

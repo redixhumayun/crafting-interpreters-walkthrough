@@ -8,8 +8,16 @@ import static com.example.basiccompiler.TokenType.*;
 
 public class Parser {
     private static class ParseError extends RuntimeException {};
+    private static class Jump extends RuntimeException {
+        final Token token;
+        Jump(Token token) {
+            this.token = token;
+        }
+    };
     private final List<Token> tokens;
     private int current = 0;
+
+    private int loopCounter = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -59,11 +67,15 @@ public class Parser {
         if (match(WHILE)) {
             return whileStatement();
         }
-        if (match(LEFT_BRACE)) return new Stmt.Block(block());
+        if (match(LEFT_BRACE)) {
+            return new Stmt.Block(block());
+        }
+        if (match(BREAK)) return breakStatement();
         return expressionStatement();
     }
 
     private Stmt forStatement() {
+        loopCounter += 1;
         consume(LEFT_PAREN, "Expect '(' after 'for'");
         Stmt initializer;
         if (match(SEMICOLON)) {
@@ -103,6 +115,7 @@ public class Parser {
         if (initializer != null) {
             body = new Stmt.Block(Arrays.asList(initializer, body));
         }
+        loopCounter -= 1;
         return body;
     }
 
@@ -125,10 +138,12 @@ public class Parser {
     }
 
     private Stmt whileStatement() {
+        loopCounter += 1;
         consume(LEFT_PAREN, "Expect '(' after 'while'");
         Expr condition = expression();
         consume(RIGHT_PAREN, "Expect ')' after while condition");
         Stmt whileBody = statement();
+        loopCounter -= 1;
         return new Stmt.While(condition, whileBody);
     }
 
@@ -137,8 +152,21 @@ public class Parser {
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
             statements.add(declaration());
         }
+//        for(Stmt statement : statements) {
+//            System.out.println(statement);
+//        }
         consume(RIGHT_BRACE, "Expect '}' after block.");
         return statements;
+    }
+
+    private Stmt breakStatement() {
+        Token name = previous();
+
+        if (loopCounter == 0) {
+            throw error(name, "Break statement found outside of loop");
+        }
+        consume(SEMICOLON, "Expect ; after break statement");
+        return new Stmt.Break(name);
     }
 
     private Stmt expressionStatement() {
