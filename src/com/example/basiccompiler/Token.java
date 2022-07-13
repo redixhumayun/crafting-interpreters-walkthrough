@@ -1,6 +1,14 @@
 package com.example.basiccompiler;
 
 public class Token {
+    /**
+     * Example:
+     * ==
+     * TokenType -> EQUAL_EQUAL
+     * String -> "=="
+     * literal -> null
+     * line -> 1
+     */
     final TokenType type;
     final String lexeme;
     final Object literal;

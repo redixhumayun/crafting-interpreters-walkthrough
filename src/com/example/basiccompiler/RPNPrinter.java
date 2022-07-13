@@ -22,6 +22,12 @@ public class RPNPrinter implements Expr.Visitor<String> {
     String print(Expr expr) {
         return expr.accept(this);
     }
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr) {
+        return null;
+    }
+
     @Override
     public String visitBinaryExpr(Expr.Binary expr) {
         return createNotation(expr.operator.lexeme, expr.left, expr.right);
@@ -39,8 +45,18 @@ public class RPNPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitLogicalExpr(Expr.Logical expr) {
+        return null;
+    }
+
+    @Override
     public String visitUnaryExpr(Expr.Unary expr) {
         return createNotation(expr.operator.lexeme, expr.right);
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        return null;
     }
 
     private String createNotation(String name, Expr... exprs) {
