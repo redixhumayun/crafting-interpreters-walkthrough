@@ -1,3 +1,5 @@
 var a = 0;
-a = 2;
-print a;
+while (a < 5) {
+    print a;
+    a = a + 1;
+}

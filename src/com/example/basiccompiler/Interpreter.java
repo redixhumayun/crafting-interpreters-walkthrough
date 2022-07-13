@@ -49,7 +49,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        Object value = expr.value;
+        Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
         return value;
     }
@@ -229,8 +229,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
-        Object value = evaluate(stmt.condition);
-        while (isTruthy(value)) {
+        while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body);
         }
         return null;
