@@ -1,9 +1,8 @@
-var a = 0;
-var temp;
-
-for (var b = 1; a < 10000; b = temp + b) {
-  print a;
-  temp = a;
-  a = b;
-  break;
+var a = 1;
+while (a < 5) {
+    print a;
+    a = a + 1;
+    if (a == 3) {
+        break;
+    }
 }
