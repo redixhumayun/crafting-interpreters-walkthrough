@@ -22,6 +22,7 @@ public class Environment {
         if (enclosing != null) {
             return enclosing.get(name);
         }
+        System.out.println("Ran into an issue while reading");
         throw new RuntimeError(name,
                 "Undefined variable '" + name.lexeme + "'.");
     }

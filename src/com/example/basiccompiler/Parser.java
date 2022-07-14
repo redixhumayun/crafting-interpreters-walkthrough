@@ -50,7 +50,7 @@ public class Parser {
         Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
         consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
         List<Token> parameters = new ArrayList<>();
-        if (!match(RIGHT_PAREN)) {
+        if (!check(RIGHT_PAREN)) {
             do {
                 if (parameters.size() >= 255) {
                     error(peek(), "Argument size cannot be greater than 255");
@@ -86,6 +86,9 @@ public class Parser {
         }
         if (match(PRINT)) {
             return printStatement();
+        }
+        if (match(RETURN)) {
+            return returnStatement();
         }
         if (match(WHILE)) {
             return whileStatement();
@@ -158,6 +161,16 @@ public class Parser {
         Expr value = expression();
         consume(SEMICOLON, "Expect ; after statement");
         return new Stmt.Print(value);
+    }
+
+    private Stmt returnStatement() {
+        Token name = previous();
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after return statement");
+        return new Stmt.Return(name, value);
     }
 
     private Stmt whileStatement() {

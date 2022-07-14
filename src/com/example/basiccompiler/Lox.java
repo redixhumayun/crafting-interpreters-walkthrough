@@ -61,7 +61,7 @@ public class Lox {
         if (hadError) {
             return;
         }
-        interpreter.interpret(statements);
+//        interpreter.interpret(statements);
     }
 
     static void error(int line, String message) {

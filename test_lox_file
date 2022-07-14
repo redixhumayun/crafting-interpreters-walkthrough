@@ -1,5 +1,9 @@
-fun sayHi(first, last) {
-  print "Hi, " + first + " " + last + "!";
+fun thrice(fn) {
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
 }
 
-sayHi("Dear", "Reader");
+thrice(fun (a) {
+  print a;
+});
