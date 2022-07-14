@@ -33,6 +33,9 @@ public class Parser {
 
     private Stmt declaration() {
         try {
+            if (match(FUN)) {
+                return function("function");
+            }
             if (match(VAR)) {
                 return varDeclaration();
             }
@@ -41,6 +44,26 @@ public class Parser {
             synchronize();
             return null;
         }
+    }
+
+    private Stmt function(String kind) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!match(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Argument size cannot be greater than 255");
+                }
+                parameters.add(
+                        consume(IDENTIFIER, "Expected parameter name")
+                );
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after arguments list");
+        consume(LEFT_BRACE, "Expect '{' before function body");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     private Stmt varDeclaration() {
@@ -198,7 +221,7 @@ public class Parser {
         while (match(OR)) {
             Token operator = previous();
             Expr right = and();
-            return new Expr.Logical(left, operator, right);
+            left = new Expr.Logical(left, operator, right);
         }
         return left;
     }
@@ -208,7 +231,7 @@ public class Parser {
         while (match(AND)) {
             Token operator = previous();
             Expr right = equality();
-            return new Expr.Logical(left, operator, right);
+            left = new Expr.Logical(left, operator, right);
         }
         return left;
     }
@@ -218,7 +241,7 @@ public class Parser {
         while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
             Token operator = previous();
             Expr right = comparison();
-            return new Expr.Binary(comparison, operator, right);
+            comparison = new Expr.Binary(comparison, operator, right);
         }
         return comparison;
     }
@@ -228,7 +251,7 @@ public class Parser {
         while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
             Token operator = previous();
             Expr right = term();
-            return new Expr.Binary(term, operator, right);
+            term = new Expr.Binary(term, operator, right);
         }
         return term;
     }
@@ -238,7 +261,7 @@ public class Parser {
         while (match(TokenType.MINUS, TokenType.PLUS)) {
             Token operator = previous();
             Expr right = factor();
-            return new Expr.Binary(factor, operator, right);
+            factor = new Expr.Binary(factor, operator, right);
         }
         return factor;
     }
@@ -248,7 +271,7 @@ public class Parser {
         while(match(TokenType.SLASH, TokenType.STAR)) {
             Token operator = previous();
             Expr right = unary();
-            return new Expr.Binary(unary, operator, right);
+            unary = new Expr.Binary(unary, operator, right);
         }
         return unary;
     }
@@ -260,7 +283,34 @@ public class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr finishCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (arguments.size() >= 255) {
+                    error(peek(), "Can't have more than 255 arguments");
+                }
+                arguments.add(expression());
+            } while (match(COMMA));
+        }
+        Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments");
+        return new Expr.Call(callee, paren, arguments);
     }
 
     private Expr primary() {
