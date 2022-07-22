@@ -212,7 +212,26 @@ public class Parser {
     }
 
     private Expr expression() {
+        if (match(FUN)) {
+            return functionExpression();
+        }
         return assignment();
+    }
+
+    private Expr functionExpression() {
+        consume(LEFT_PAREN, "Expect '(' after anonymous function declaration");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                parameters.add(
+                        consume(IDENTIFIER, "Expected parameter name")
+                );
+            } while(match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after arguments list");
+        consume(LEFT_BRACE, "Expect '{' before function body");
+        List<Stmt> body = block();
+        return new Expr.AnonymousFunction(parameters, body);
     }
 
     private Expr assignment() {

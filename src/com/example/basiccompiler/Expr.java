@@ -7,6 +7,7 @@ abstract class Expr {
     R visitAssignExpr(Assign expr);
     R visitBinaryExpr(Binary expr);
     R visitCallExpr(Call expr);
+    R visitAnonymousFunctionExpr(AnonymousFunction expr);
     R visitGroupingExpr(Grouping expr);
     R visitLiteralExpr(Literal expr);
     R visitLogicalExpr(Logical expr);
@@ -58,6 +59,20 @@ abstract class Expr {
     final Expr callee;
     final Token paren;
     final List<Expr> arguments;
+  }
+  static class AnonymousFunction extends Expr {
+    AnonymousFunction(List<Token> arguments, List<Stmt>  body) {
+      this.arguments = arguments;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitAnonymousFunctionExpr(this);
+    }
+
+    final List<Token> arguments;
+    final List<Stmt>  body;
   }
   static class Grouping extends Expr {
     Grouping(Expr expression) {

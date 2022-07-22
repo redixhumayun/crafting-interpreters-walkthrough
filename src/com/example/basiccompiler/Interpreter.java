@@ -163,6 +163,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitAnonymousFunctionExpr(Expr.AnonymousFunction expr) {
+        System.out.println("Parsing anonymous function");
+//        LoxFunction function = new LoxFunction(stmt, environment);
+//        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
         return evaluate(expr.expression);
     }
