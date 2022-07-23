@@ -1,7 +1,7 @@
-{
-    var a = "global";
-    fun showA() {
-        print a;
-    }
-    var b = "unused";
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
 }
+
+Bacon().eat();

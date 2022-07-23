@@ -16,7 +16,8 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
 
     private enum FunctionType {
         NONE,
-        FUNCTION
+        FUNCTION,
+        METHOD
     }
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
@@ -38,6 +39,12 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         for (Expr argument : expr.arguments) {
             resolve(argument);
         }
+        return null;
+    }
+
+    @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        resolve(expr.object);
         return null;
     }
 
@@ -65,6 +72,13 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        resolve(expr.value);
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         resolve(expr.right);
         return null;
@@ -72,7 +86,7 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
 
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        if (scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
+        if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
             Lox.error(expr.name,
                     "Can't read local variable in its own initializer.");
         }
@@ -94,6 +108,16 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         beginScope();
         resolve(stmt.statements);
         endScope();
+        return null;
+    }
+
+    @Override
+    public Object visitClassStmt(Stmt.Class stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+        for (Stmt.Function method : stmt.methods) {
+            resolveFunction(method, FunctionType.METHOD);
+        }
         return null;
     }
 
@@ -166,7 +190,7 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     private void endScope() {
         //  before popping the scope, check if the variables defined in this scope have been
         //  used by the interpreter. A variable will only be defined
-        checkUnusedVariables();
+//        checkUnusedVariables();
         scopes.pop();
     }
 
