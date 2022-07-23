@@ -48,6 +48,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         locals.put(expr, depth);
     }
 
+    Map<Expr, Integer> getLocals() {
+        return locals;
+    }
+
     void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
         try {
@@ -223,11 +227,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         return lookupVariable(expr.name, expr);
-//        Object value = environment.get(expr.name);
-//        if (value == null) {
-//            throw new RuntimeError(expr.name, "Unable to access a variable that has not been assigned.");
-//        }
-//        return value;
     }
 
     private Object lookupVariable(Token name, Expr expr) {

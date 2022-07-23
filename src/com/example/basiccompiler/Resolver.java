@@ -164,6 +164,9 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     private void endScope() {
+        //  before popping the scope, check if the variables defined in this scope have been
+        //  used by the interpreter. A variable will only be defined
+        checkUnusedVariables();
         scopes.pop();
     }
 
@@ -192,6 +195,17 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         resolve(function.body);
         endScope();
         currentFunction = enclosingFunction;
+    }
+
+    void checkUnusedVariables() {
+        System.out.println("****");
+        System.out.println(scopes.peek());
+        System.out.println(interpreter.getLocals());
+        Map<Expr, Integer> locals = interpreter.getLocals();
+        for (Expr key : locals.keySet()) {
+            Expr.Variable typeCastedKey = (Expr.Variable) key;
+            System.out.println(typeCastedKey.name);
+        }
     }
 
     private void declare(Token name) {
