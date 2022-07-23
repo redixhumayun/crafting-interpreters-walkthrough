@@ -61,6 +61,14 @@ public class Lox {
         if (hadError) {
             return;
         }
+        for (Stmt statement : statements) {
+            System.out.println(statement);
+        }
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(statements);
+        if (hadError) {
+            return;
+        }
         interpreter.interpret(statements);
     }
 
