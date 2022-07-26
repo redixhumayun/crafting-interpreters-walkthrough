@@ -9,6 +9,7 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -17,7 +18,13 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     private enum FunctionType {
         NONE,
         FUNCTION,
-        METHOD
+        METHOD,
+        INITIALIZER
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS
     }
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
@@ -79,6 +86,16 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     @Override
+    public Object visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Cannot use 'this' outside of class");
+            return null;
+        }
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         resolve(expr.right);
         return null;
@@ -113,11 +130,21 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
 
     @Override
     public Object visitClassStmt(Stmt.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
         declare(stmt.name);
         define(stmt.name);
+        beginScope();
+        scopes.peek().put("this", true);
         for (Stmt.Function method : stmt.methods) {
-            resolveFunction(method, FunctionType.METHOD);
+            FunctionType declaration = FunctionType.METHOD;
+            if (method.name.lexeme.equals("init")) {
+                declaration = FunctionType.INITIALIZER;
+            }
+            resolveFunction(method, declaration);
         }
+        endScope();
+        currentClass = enclosingClass;
         return null;
     }
 
@@ -158,6 +185,9 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
             Lox.error(stmt.keyword, "Cannot return from outside a function");
         }
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.keyword, "Can't return a value from an initializer");
+            }
             resolve(stmt.value);
         }
         return null;
@@ -188,9 +218,6 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     private void endScope() {
-        //  before popping the scope, check if the variables defined in this scope have been
-        //  used by the interpreter. A variable will only be defined
-//        checkUnusedVariables();
         scopes.pop();
     }
 
@@ -219,17 +246,6 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         resolve(function.body);
         endScope();
         currentFunction = enclosingFunction;
-    }
-
-    void checkUnusedVariables() {
-        System.out.println("****");
-        System.out.println(scopes.peek());
-        System.out.println(interpreter.getLocals());
-        Map<Expr, Integer> locals = interpreter.getLocals();
-        for (Expr key : locals.keySet()) {
-            Expr.Variable typeCastedKey = (Expr.Variable) key;
-            System.out.println(typeCastedKey.name);
-        }
     }
 
     private void declare(Token name) {
